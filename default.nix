@@ -4,11 +4,17 @@
     rev = "a0aeb23";
     sha256 = "04dgg0f2839c1kvlhc45hcksmjzr8a22q1bgfnrx71935ilxl33d";
   }){}
-, haddock ? true
+, haddock ? false
+, pkgsGhc ? import ((import <nixpkgs> {}).fetchFromGitHub {
+    owner = "NixOS";
+    repo = "nixpkgs";
+    rev = "222950952";
+    sha256 = "1hfchhy8vlc333sglabk1glkcnv4mrnarm9j4havqn7g5ri68vrd";
+  }){}
 }:
 let
   inherit (pkgs.haskell.lib) buildFromSdist enableCabalFlag sdistTarball buildStrictly;
-  inherit (pkgs.haskell.packages) ghc802;
+  ghc = pkgsGhc.haskell.packages.ghc844;
   ghcjs = pkgs.haskell.packages.ghcjsHEAD.override {
      overrides = self: super: {
        jsaddle-warp = super.callPackage ./jsaddle-warp-ghcjs.nix {};
@@ -17,7 +23,7 @@ let
   inherit (pkgs.lib) overrideDerivation optionalString;
   inherit (pkgs.stdenv) isDarwin;
   inherit (pkgs) closurecompiler;
-  miso-ghc = ghc802.callPackage ./miso-ghc.nix { };
+  miso-ghc = ghc.callPackage ./miso-ghc.nix { };
   miso-ghcjs = (ghcjs.callPackage ./miso-ghcjs.nix { }).overrideDerivation (drv: {
     doHaddock = haddock;
     postInstall = ''
